@@ -1,14 +1,40 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, Pressable } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+//import { useGyro } from "@/hooks/useGyro";
+import { useAngleFromGyro } from "@/hooks/useGyro";
+import { useAccelerometerHold } from "@/hooks/useAccelerometerStable";
+import { useBarometerStable } from "@/hooks/useBarometer"
 
 export default function HomeScreen() {
+ //const g = useGyro(60);
+ const DEG = '\u00B0';
+ const ang = useAngleFromGyro({
+  hz: 30, emitHz: 8, alpha: 0.25,
+  roundToDeg: 0.5, deadbandDeg: 0.2,
+  stillOmega: 0.02, stillHoldMs: 1200
+});
+const baro = useBarometerStable({
+  hz: 5, emitHz: 2, alpha: 0.2,
+  deadbandHpa: 0.02, stillHpa: 0.03,
+  stillHoldMs: 1200, unfreezeHpa: 0.06,
+});
+
+const acc = useAccelerometerHold({
+  hz: 30,        // sensor sample rate
+  emitHz: 12,    // UI update rate
+  alpha: 0.25,   // raw smoothing
+  gravityAlpha: 0.10, // gravity LPF
+  deadbandG: 0.01,
+});
+
   return (
+
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
@@ -64,19 +90,98 @@ export default function HomeScreen() {
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
+
+
+      <ThemedView style={{ alignItems:"center", justifyContent:"center", paddingVertical:16 }}>
+        <ThemedText type="subtitle">Angles (deg)</ThemedText>
         <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+          {ang ? `roll x: ${ang.x.toFixed(1)}${DEG}   pitch y: ${ang.y.toFixed(1)}${DEG}   yaw z: ${ang.z.toFixed(1)}${DEG}`
+               : "Waiting…"}
         </ThemedText>
+        <ThemedText type="default">Updates frozen when device is still.</ThemedText>
       </ThemedView>
+
+      <ThemedView style={{ alignItems: "center", gap: 8, paddingVertical: 12 }}>
+        <ThemedText type="subtitle">Accelerometer</ThemedText>
+
+        <ThemedText>
+          {acc.g ? `raw (g): x ${acc.g.x.toFixed(3)}  y ${acc.g.y.toFixed(3)}  z ${acc.g.z.toFixed(3)}  | |g| ${acc.g.mag.toFixed(3)}`
+                 : "Reading…"}
+        </ThemedText>
+
+        <ThemedText>
+          {acc.linear ? `linear (m/s²): x ${acc.linear.x.toFixed(2)}  y ${acc.linear.y.toFixed(2)}  z ${acc.linear.z.toFixed(2)}  |a| ${acc.linear.mag.toFixed(2)}`
+                      : "Estimating…"}
+        </ThemedText>
+
+        <ThemedText type="defaultSemiBold">
+          {acc.frozen ? "🔒 Held (still)" : "🟢 Live"}
+        </ThemedText>
+
+        <ThemedView style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+          {acc.frozen ? (
+            <Pressable onPress={acc.unlock} style={btn("#888")}><ThemedText style={{ color: "#fff" }}>Unfreeze</ThemedText></Pressable>
+          ) : (
+            <Pressable onPress={acc.lock} style={btn("#444")}><ThemedText style={{ color: "#fff" }}>Freeze</ThemedText></Pressable>
+          )}
+        </ThemedView>
+
+      </ThemedView>
+
+      <ThemedView style={{ gap: 8, paddingVertical: 12, alignItems: "center" }}>
+        <ThemedText type="subtitle">Barometer</ThemedText>
+
+        <ThemedText>
+          {baro.supported === null
+            ? "Checking sensor…"
+            : baro.supported ? "Barometer available" : "Barometer not available"}
+        </ThemedText>
+
+        <ThemedText>
+          {baro.pressureHpa != null ? `Pressure: ${baro.pressureHpa.toFixed(2)} hPa` : "Reading pressure…"}
+        </ThemedText>
+
+        <ThemedText>
+          {baro.relAltM != null ? `ΔAltitude: ${baro.relAltM.toFixed(2)} m` : "Estimating altitude…"}
+        </ThemedText>
+
+        {baro.iosRelAltM != null && (
+          <ThemedText type="default">(iOS relAlt: {baro.iosRelAltM.toFixed(2)} m)</ThemedText>
+        )}
+
+        <ThemedText type="defaultSemiBold">
+          {baro.frozen ? "🔒 Held (still)" : "🟢 Live"}
+        </ThemedText>
+
+        <ThemedView style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+          <Pressable onPress={baro.zero} style={btnStyle("#2f95dc")}>
+            <ThemedText style={{ color: "white" }}>Zero</ThemedText>
+          </Pressable>
+          {baro.frozen ? (
+            <Pressable onPress={baro.unlock} style={btnStyle("#888")}>
+              <ThemedText style={{ color: "white" }}>Unfreeze</ThemedText>
+            </Pressable>
+          ) : (
+            <Pressable onPress={baro.lock} style={btnStyle("#444")}>
+              <ThemedText style={{ color: "white" }}>Freeze</ThemedText>
+            </Pressable>
+          )}
+        </ThemedView>
+      </ThemedView>
+      
+
     </ParallaxScrollView>
   );
 }
+
+const btn = (bg: string) => ({ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: bg });
+
+const btnStyle = (bg: string) => ({
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 10,
+  backgroundColor: bg,
+});
 
 const styles = StyleSheet.create({
   titleContainer: {
