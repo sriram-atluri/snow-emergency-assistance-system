@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "110922008915",
+    "project_id": "snowguardapp",
+    "storage_bucket": "snowguardapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110922008915:android:83dd6ddfe8475844a7f9a6",
+        "android_client_info": {
+          "package_name": "com.test.snowguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkLzzptcIwf2hqd_rqRHJmlJFXqk793j4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
