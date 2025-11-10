@@ -1,3 +1,4 @@
+// src/hooks/sensors/useAccelerometerHold.ts
 import { Accelerometer } from "expo-sensors";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,6 +8,8 @@ export type AccelStable = {
   supported: boolean | null;
   g: { x: number; y: number; z: number; mag: number } | null;        // includes gravity (g)
   linear: { x: number; y: number; z: number; mag: number } | null;   // gravity-removed (m/s²)
+  smoothedMag?: number;     // NEW: magnitude computed from the EMA of axes (same units as g.mag)
+  windowAvg?: number;       // NEW: optional moving-average of recent magnitudes (diagnostic)
   frozen: boolean;
   lock: () => void;
   unlock: () => void;
@@ -21,6 +24,7 @@ type Opts = {
   stillLinear?: number;   // |linear| < this (m/s²) counts as "still"
   holdMs?: number;        // how long "still" before freezing
   unfreezeLinear?: number;// |linear| > this (m/s²) breaks freeze (hysteresis)
+  windowSize?: number;    // how many samples to keep for windowAvg
 };
 
 export function useAccelerometerHold(opts: Opts = {}): AccelStable {
@@ -32,7 +36,8 @@ export function useAccelerometerHold(opts: Opts = {}): AccelStable {
     deadbandG = 0.01,
     stillLinear = 0.15,   // ~0.015 g
     holdMs = 1200,
-    unfreezeLinear = 0.30 // > stillLinear for hysteresis
+    unfreezeLinear = 0.30, // > stillLinear for hysteresis
+    windowSize = 40,
   } = opts;
 
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -44,6 +49,9 @@ export function useAccelerometerHold(opts: Opts = {}): AccelStable {
   const grav = useRef<{ x: number; y: number; z: number } | null>(null);  // gravity est. (g)
   const lastEmit = useRef(0);
   const stillSince = useRef<number | null>(null);
+
+  // ring buffer for window average of magnitudes (diagnostic)
+  const magBuf = useRef<number[]>([]);
 
   const lock = () => setFrozen(true);
   const unlock = () => { stillSince.current = null; setFrozen(false); };
@@ -93,6 +101,13 @@ export function useAccelerometerHold(opts: Opts = {}): AccelStable {
         if (lmag > unfreezeLinear) unlock();
       }
 
+      // compute magnitude from EMA (smoothed magnitude in same units as gState.mag)
+      const emaMag = Math.hypot(ema.current.x, ema.current.y, ema.current.z);
+
+      // maintain ring buffer for window average (diagnostic)
+      magBuf.current.push(emaMag);
+      if (magBuf.current.length > windowSize) magBuf.current.shift();
+
       // Throttle + deadband + skip when frozen
       const minInterval = 1000 / emitHz;
       if (now - lastEmit.current < minInterval) return;
@@ -115,7 +130,12 @@ export function useAccelerometerHold(opts: Opts = {}): AccelStable {
     });
 
     return () => sub.remove();
-  }, [hz, emitHz, alpha, gravityAlpha, deadbandG, stillLinear, holdMs, unfreezeLinear, frozen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hz, emitHz, alpha, gravityAlpha, deadbandG, stillLinear, holdMs, unfreezeLinear, frozen, windowSize]);
 
-  return { supported, g: gState, linear: linState, frozen, lock, unlock };
+  // compute window average (derived; not stateful to avoid extra renders)
+  const windowAvg = magBuf.current.length ? magBuf.current.reduce((s, v) => s + v, 0) / magBuf.current.length : undefined;
+  const smoothedMag = ema.current ? Math.hypot(ema.current.x, ema.current.y, ema.current.z) : undefined;
+
+  return { supported, g: gState, linear: linState, smoothedMag, windowAvg, frozen, lock, unlock };
 }

@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Platform, StyleSheet, Pressable } from 'react-native';
-
+// add (or extend) this import at the top of HomeScreen / index.tsx
+import React, { useEffect, useRef, useState } from "react";
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
@@ -10,6 +11,9 @@ import { Link } from 'expo-router';
 import { useAngleFromGyro } from "@/hooks/useGyro";
 import { useAccelerometerHold } from "@/hooks/useAccelerometerStable";
 import { useBarometerStable } from "@/hooks/useBarometer"
+import { useFall } from "@/hooks/fallDetection"
+import { Alert, Vibration } from "react-native"; // use Vibration for haptic feedback
+import { sensorsAvailable } from "@/helpers/sensors-guard";
 
 export default function HomeScreen() {
  //const g = useGyro(60);
@@ -32,6 +36,44 @@ const acc = useAccelerometerHold({
   gravityAlpha: 0.10, // gravity LPF
   deadbandG: 0.01,
 });
+
+// inside your HomeScreen() component (after existing hooks)
+const ok = sensorsAvailable();
+
+// if sensors not available keep fall hook harmless by not calling it (or call and rely on internal guards)
+const { fallDetected, fallState, lastEvent, reset: resetFall } = ok ? useFall() : { fallDetected: false, fallState: "idle", lastEvent: null, reset: () => {} };
+
+// handle a one-time alert / action when a fall is confirmed
+const lastAlert = useRef<number | null>(null);
+
+useEffect(() => {
+  if (!fallDetected) return;
+
+  const now = Date.now();
+  // avoid spamming: only alert once per 10s (tweak)
+  if (lastAlert.current && now - lastAlert.current < 10000) return;
+  lastAlert.current = now;
+
+  // vibrate and show a confirmation alert
+  Vibration.vibrate([200, 80, 200]); // small pattern
+  Alert.alert(
+    "Fall detected",
+    "A probable fall was detected. Are you OK?",
+    [
+      { text: "I'm OK", onPress: () => resetFall(), style: "default" },
+      {
+        text: "Call Help",
+        style: "destructive",
+        onPress: () => {
+          // TODO: implement call/SOS action (Linking.openURL('tel:...') or custom)
+          resetFall();
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+}, [fallDetected, resetFall]);
+
 
   return (
 
@@ -168,6 +210,29 @@ const acc = useAccelerometerHold({
           )}
         </ThemedView>
       </ThemedView>
+
+      // inside your ParallaxScrollView content where you render sensors:
+<ThemedView style={{ alignItems: "center", paddingVertical: 12 }}>
+  <ThemedText type="subtitle">Fall Detection</ThemedText>
+  <ThemedText>
+    {ok ? `State: ${fallState}` : "Sensors not available (no fall detection)"}
+  </ThemedText>
+  <ThemedText>
+    {lastEvent ? `Last: ${lastEvent.reason} @ ${new Date(lastEvent.t).toLocaleTimeString()}` : "No events"}
+  </ThemedText>
+  <ThemedView style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+    <Pressable onPress={() => resetFall()} style={btnStyle("#666")}>
+      <ThemedText style={{ color: "white" }}>Reset</ThemedText>
+    </Pressable>
+    <Pressable onPress={() => {
+      // quick debug: unlock baro if frozen to capture baro delta for one test
+      if (baro?.frozen) baro.unlock();
+    }} style={btnStyle("#2f95dc")}>
+      <ThemedText style={{ color: "white" }}>Unlock Baro (debug)</ThemedText>
+    </Pressable>
+  </ThemedView>
+</ThemedView>
+
       
 
     </ParallaxScrollView>
