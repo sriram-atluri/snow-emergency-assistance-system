@@ -137,8 +137,8 @@ useEffect(() => {
       <ThemedView style={{ alignItems:"center", justifyContent:"center", paddingVertical:16 }}>
         <ThemedText type="subtitle">Angles (deg)</ThemedText>
         <ThemedText>
-          {ang ? `roll x: ${ang.x.toFixed(1)}${DEG}   pitch y: ${ang.y.toFixed(1)}${DEG}   yaw z: ${ang.z.toFixed(1)}${DEG}`
-               : "Waiting…"}
+          {/*ang ? `roll x: ${ang.x.toFixed(1)}${DEG}   pitch y: ${ang.y.toFixed(1)}${DEG}   yaw z: ${ang.z.toFixed(1)}${DEG}`
+               : "Waiting…"*/}
         </ThemedText>
         <ThemedText type="default">Updates frozen when device is still.</ThemedText>
       </ThemedView>

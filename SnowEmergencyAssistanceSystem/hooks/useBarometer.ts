@@ -1,4 +1,4 @@
-import { Barometer } from "expo-sensors";
+import { Barometer } from "expo-sensors"; // Imports the barometer measurement package from expo-sensors
 import { useEffect, useRef, useState } from "react";
 
 export type BaroStable = {
