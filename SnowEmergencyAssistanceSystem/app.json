@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+        "infoPlist": {
+          "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show you nearby services and improve your experience."
+      }
     },
     "android": {
       "adaptiveIcon": {
