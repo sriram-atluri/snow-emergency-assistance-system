@@ -32,7 +32,7 @@ const app: FirebaseApp = initializeApp(firebaseConfig);
 // This defaults to memory persistence when run in Expo Go without explicit configuration.
 export const auth: Auth = getAuth(app); 
 
-export const db = getFirestore(app);
+//export const db = getFirestore(app);
 
 // 3. Export all necessary utilities 
 export { onAuthStateChanged, signOut, signInWithEmailAndPassword };

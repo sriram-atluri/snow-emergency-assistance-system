@@ -2,7 +2,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { auth } from '../firebaseConfig'; 
 
 
-const resetScreen => {
+/*const resetScreen => {
 
     const handlePasswordReset{
         
@@ -18,7 +18,7 @@ const resetScreen => {
             />
         </View>
     );
-}
+}*/
 const styles = StyleSheet.create({
     container: {
         flex: 1,

@@ -7,10 +7,9 @@ import React, {
 } from 'react';
 import { 
   initializeAuth, 
-  createUserWithEmailAndPassword
-  getReactNativePersistence, 
+  createUserWithEmailAndPassword,
   onAuthStateChanged, 
-  signOut, 
+  //signOut, 
   User as FirebaseUser, 
   Auth 
 } from 'firebase/auth'; 
