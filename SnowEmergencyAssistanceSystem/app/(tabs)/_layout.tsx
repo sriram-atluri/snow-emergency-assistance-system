@@ -27,27 +27,65 @@ export default function TabLayout() {
             />
         ),
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
+
+        <Tabs.Screen
+        name="home"
+        options = {{
           title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+        />
+      <Tabs.Screen
+        name="reportDetails"
+        options={{
+          title: 'R-D',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      
+       <Tabs.Screen
+        name="report"
+        options={{
+          title: 'Report',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="signIn"
         options={{
+<<<<<<< HEAD
           title: 'Help',
+=======
+          title: 'SignIn',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="nearbyIncident"
+        options={{
+          title: 'Incident',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+
+      {/* <Tabs.Screen
+        name="signUp"
+        options={{
+          title: 'SignUp',
+>>>>>>> naushad_branch
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="mapDisplay"
+        name="forgetPassword"
         options = {{
-          title: 'Mapping',
+          title: 'ForgetPassword',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="map.fill" color={color} />,
         }}
-        />
+        /> */}
+        
+        
+      
     </Tabs>
   );
 }
