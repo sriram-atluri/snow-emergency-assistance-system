@@ -7,6 +7,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 //import { useGyro } from "@/hooks/useGyro";
 import { useAngleFromGyro } from "@/hooks/useGyro";
 import { useAccelerometerHold } from "@/hooks/useAccelerometerStable";
@@ -18,6 +19,9 @@ import { sensorsAvailable } from "@/helpers/sensors-guard";
 export default function HomeScreen() {
  //const g = useGyro(60);
  const DEG = '\u00B0';
+
+ const { logout } = useAuth();
+
  const ang = useAngleFromGyro({
   hz: 30, emitHz: 8, alpha: 0.25,
   roundToDeg: 0.5, deadbandDeg: 0.2,
@@ -74,6 +78,20 @@ useEffect(() => {
   );
 }, [fallDetected, resetFall]);
 
+// 🚨 New: Handle Sign Out
+const handleSignOut = async () => {
+  try {
+      // 🚨 ADD THIS LINE 🚨
+      console.log("Sign Out Button Clicked. Attempting logout..."); 
+      
+      await logout(); 
+      // If this line executes, the button was definitely clicked!
+      
+  } catch (error) {
+      console.error("Logout failed:", error);
+      Alert.alert("Error", "Failed to sign out.");
+  }
+};
 
   return (
 
@@ -233,6 +251,12 @@ useEffect(() => {
   </ThemedView>
 </ThemedView>
 
+{/* 🚨 ADD SIGN OUT BUTTON HERE 🚨 */}
+<ThemedView style={styles.signOutContainer}>
+        <Pressable onPress={handleSignOut} style={styles.signOutButton}>
+          <ThemedText style={{ color: "white", fontWeight: 'bold' }}>Sign Out</ThemedText>
+        </Pressable>
+      </ThemedView>
       
 
     </ParallaxScrollView>
@@ -265,4 +289,17 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+  signOutContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc', // Light gray separator
+  },
+  signOutButton: {
+    backgroundColor: '#E74C3C', // Red color for destructive action
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  }
 });

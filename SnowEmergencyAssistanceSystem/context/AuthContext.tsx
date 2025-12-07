@@ -1,77 +1,111 @@
-import React, { createContext, useState, useContext } from 'react';
-import { Alert } from 'react-native';
+import React, { 
+  createContext, 
+  useContext, 
+  useState, 
+  useEffect, 
+  ReactNode 
+} from 'react';
+import { 
+  initializeAuth, 
+  createUserWithEmailAndPassword
+  getReactNativePersistence, 
+  onAuthStateChanged, 
+  signOut, 
+  User as FirebaseUser, 
+  Auth 
+} from 'firebase/auth'; 
+import { useRouter, useSegments } from 'expo-router'; // 🚨 REQUIRED for explicit navigation 🚨
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage'; import { auth } from '../firebaseConfig'; // Your initialized Firebase Auth instance
 
-// --- A. Define Types ---
+// 🚨 Path should be relative to your project root, e.g., '../firebaseConfig' 🚨
+import { app, auth as firebaseAuthInstance } from '../firebaseConfig'; 
 
-// 1. Define the shape of the user data
-export interface User {
-  id: string;
-  email: string;
+
+// --- Define Types ---
+
+// Alias for the Firebase User type
+// --- Define Types ---
+export type AppUser = FirebaseUser;
+
+interface AuthContextType {
+  user: AppUser | null;
+  isLoading: boolean;
+  logout: () => Promise<void>; 
 }
 
-// 2. Define the shape of the context values (what the app consumes)
-export interface AuthContextType {
-  user: User | null;
-  // This function takes credentials and attempts to sign the user in.
-  signIn: (email: string, password: string) => Promise<void>; 
-  // This function signs the user out.
-  signOut: () => Promise<void>; 
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  isLoading: boolean; // <-- Added the missing property
-}
-
-// 3. Create the Context
-// We use 'undefined' as the initial value, which TypeScript enforces checking later.
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// --- B. Create the Provider Component ---
-
-interface AuthProviderProps {
-    children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  const signIn = async (email: string, password: string) => {
-    // 📢 Placeholder for your actual API or Firebase call
-    console.log(`Attempting sign-in for: ${email}`);
-    
-    // Simulate a successful sign-in after checking credentials
-    if (email === 'test@example.com' && password === 'password') {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      
-      const signedInUser: User = { id: 'u123', email: email };
-      setUser(signedInUser); // Update the global state
-      Alert.alert("Success", "You are now signed in!");
-
-    } else {
-      // Throw an error to be caught by the calling component (SignInScreen)
-      throw new Error('Invalid email or password.');
-    }
-  };
-
-  const signOut = async () => {
-    // 📢 Placeholder for clearing tokens/sessions
-    await new Promise(resolve => setTimeout(resolve, 500)); 
-    setUser(null); // Clear the global state
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// --- C. Custom Hook for Consumption ---
-
+// --- Custom Hook ---
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // This ensures useAuth is only called within the AuthProvider
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+// --- Helper Component to Handle Navigation (CRITICAL) ---
+// This component ensures the router responds to user state changes.
+function useProtectedRoute(user: AppUser | null, isLoading: boolean) {
+  const segments = useSegments();
+  const router = useRouter();
+  
+  // Define protected routes (routes only accessible when logged in)
+  const inAuthGroup = segments[0] === '(tabs)'; // True if the current path starts with /(tabs)
+
+  useEffect(() => {
+    if (isLoading) return; // Wait until Firebase state is known
+
+    // If logged out, redirect to login
+    if (!user && inAuthGroup) {
+      router.replace('/login');
+    } 
+    // If logged in, redirect away from login
+    else if (user && !inAuthGroup) {
+      // Use replace to prevent the user from hitting the back button to the login screen
+      router.replace('/(tabs)'); 
+    }
+  }, [user, isLoading, inAuthGroup, router]);
+}
+
+
+// --- Context Provider Component ---
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Set up the Firebase state listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  const logout = async () => {
+    // Explicit sign out
+    await signOut(auth);
+    // The useEffect hook above will handle the navigation to '/login' when the user state turns null.
+  };
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    logout,
+  };
+
+  // 🚨 IMPORTANT: Call the Protected Route hook here 🚨
+  // This hook is what tells the router to navigate immediately upon state change.
+  useProtectedRoute(user, isLoading); 
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

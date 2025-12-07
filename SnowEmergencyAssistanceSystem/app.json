@@ -9,9 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-        "infoPlist": {
-          "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show you nearby services and improve your experience."
-      }
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show you nearby services and improve your experience."
+      },
+      "bundleIdentifier": "com.test.snowguard2" 
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +22,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "bundleIdentifier": "com.test.snowguard",
+      "package": "com.test.snowguard" 
     },
     "web": {
       "output": "static",
@@ -38,6 +41,14 @@
           "backgroundColor": "#ffffff",
           "dark": {
             "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
           }
         }
       ]
