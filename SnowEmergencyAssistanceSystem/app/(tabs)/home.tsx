@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet
 } from "react-native";
-import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 export default function HomeScreen() {
@@ -35,21 +35,25 @@ export default function HomeScreen() {
         {/* Power Button */}
         <TouchableOpacity style={styles.card}>
           <Ionicons name="power" size={48} color="#ff3b3b" />
+          <Text style={styles.label}>Power</Text>
         </TouchableOpacity>
 
         {/* Call Button */}
         <TouchableOpacity style={styles.card}>
           <Ionicons name="call" size={48} color="#ff3b3b" />
+          <Text style={styles.label}>Call</Text>
         </TouchableOpacity>
 
         {/* Location Button */}
         <TouchableOpacity style={styles.card}>
           <Ionicons name="location" size={48} color="#ff3b3b" />
+          <Text style={styles.label}>Location</Text>
         </TouchableOpacity>
 
         {/* Analytics / Report Button */}
         <TouchableOpacity style={styles.card}>
           <MaterialIcons name="analytics" size={48} color="#ff3b3b" />
+          <Text style={styles.label}>Reports</Text>
         </TouchableOpacity>
 
       </View>
@@ -103,4 +107,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+
+  label: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#444",
+  }
 });
