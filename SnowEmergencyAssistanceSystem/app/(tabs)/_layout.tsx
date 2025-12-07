@@ -18,6 +18,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+<<<<<<< HEAD
         // You can use the headerRight option to place the Sign Out button
         headerRight: () => (
             <Button
@@ -26,6 +27,9 @@ export default function TabLayout() {
               color={Colors[colorScheme ?? 'light'].tint}
             />
         ),
+=======
+        tabBarStyle: { display: "none" },
+>>>>>>> naushad_branch
       }}>
 
         <Tabs.Screen
