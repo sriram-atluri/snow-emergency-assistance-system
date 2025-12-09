@@ -6,18 +6,67 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
+import { auth } from '../firebaseConfig';
 
 export default function SignUpScreen() {
+  const [email, setEmail] = useState(''); // State for email
+  const [password, setPassword] = useState(''); // State for password
   const [checked, setChecked] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  // --- Handle User Registration ---
+  const handleSignUp = async () => {
+    if (!email || !password) {
+      Alert.alert("Missing Fields", "Please enter both email and password.");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Password Too Short", "Password must be at least 6 characters long.");
+      return;
+    }
+    if (!checked) {
+      Alert.alert("Agreement Required", "You must agree to the Terms of Services and Privacy Policy.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 🚨 CORE FUNCTION: Call the Firebase API to create a user
+      await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Success: Firebase handles setting the user and the AuthContext handles navigation to (tabs)
+      Alert.alert("Success!", "Your account has been created. Welcome to Snow Guard!");
+
+    } catch (error) {
+      console.error("Firebase Sign Up Error:", error);
+      
+      let message = "An unknown error occurred during sign-up.";
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email address is already registered.';
+      } else if (error.code === 'auth/invalid-email') {
+         message = 'The email address is not valid.';
+      }
+      // Note: 'auth/weak-password' is handled by the client-side check above
+
+      Alert.alert("Sign Up Failed", message);
+      
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
+      {/* ... Logo, Titles ... */}
       <Image
-        source={require("../../assets/images/snow.png")}
+        source={require("../assets/images/snow.png")}
         style={styles.logo}
       />
 
@@ -27,22 +76,25 @@ export default function SignUpScreen() {
       {/* Form Title */}
       <Text style={styles.signUpTitle}>Sign Up</Text>
 
-      {/* Email */}
+      {/* Email Input */}
       <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Your email address"
-        placeholderTextColor="#999"
         keyboardType="email-address"
+        autoCapitalize="none"
+        value={email} // 👈 Bind state
+        onChangeText={setEmail} // 👈 Update state
       />
 
-      {/* Password */}
+      {/* Password Input */}
       <Text style={[styles.label, { marginTop: 15 }]}>Password</Text>
       <TextInput
         style={styles.input}
         placeholder="Your password"
         secureTextEntry
-        placeholderTextColor="#999"
+        value={password} // 👈 Bind state
+        onChangeText={setPassword} // 👈 Update state
       />
 
       {/* Checkbox Row */}
@@ -50,27 +102,29 @@ export default function SignUpScreen() {
         style={styles.checkboxRow}
         onPress={() => setChecked(!checked)}
       >
-        <Ionicons
-          name={checked ? "checkbox" : "square-outline"}
-          size={22}
-          color="#ff6b6b"
-        />
-        <Text style={styles.checkboxText}>
-          I agree to the{" "}
-          <Text style={styles.linkText}>Terms of Services</Text> and{" "}
-          <Text style={styles.linkText}>Privacy Policy.</Text>
-        </Text>
+        {/* ... Ionicons ... */}
+       {/* <Text style={styles.checkboxText}>
+          I agree to the terms...
+  </Text>*/}
       </TouchableOpacity>
 
       {/* Continue Button */}
-      <TouchableOpacity style={styles.continueButton}>
-        <Text style={styles.continueText}>Continue</Text>
+      <TouchableOpacity 
+        style={styles.continueButton}
+        onPress={handleSignUp} // 👈 Call sign-up function
+        disabled={loading} // 👈 Disable while loading
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.continueText}>Continue</Text>
+        )}
       </TouchableOpacity>
 
       {/* Sign In Link */}
       <View style={styles.bottomRow}>
         <Text style={styles.haveAccount}>Have an Account?</Text>
-        <TouchableOpacity onPress={() => router.push("/sign-in")}>
+        <TouchableOpacity onPress={() => router.push("/signin")}> 
           <Text style={styles.signIn}>Sign In</Text>
         </TouchableOpacity>
       </View>

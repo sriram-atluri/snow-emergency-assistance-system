@@ -1,9 +1,10 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 
+
 export default function SplashScreen() {
   return (
     <View style={styles.container}>
-      <Image source={require("../../assets/images/snow.png")} style={styles.icon} />
+      <Image source={require("../assets/images/snow.png")} style={styles.icon} />
       <Text style={styles.title}>Snow Guard</Text>
       <Text style={styles.loading}>Loading...</Text>
     </View>

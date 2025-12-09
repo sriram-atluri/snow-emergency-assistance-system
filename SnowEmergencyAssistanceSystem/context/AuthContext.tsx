@@ -48,6 +48,9 @@ export const useAuth = () => {
 function useProtectedRoute(user: AppUser | null, isLoading: boolean) {
   const segments = useSegments();
   const router = useRouter();
+
+  // Define unauthenticated routes (all routes NOT protected)
+  const isAuthRoute = segments[0] === 'signup' || segments[0] === 'signin' || segments[0] === 'forgetPassword';
   
   // Define protected routes (routes only accessible when logged in)
   const inAuthGroup = segments[0] === '(tabs)'; // True if the current path starts with /(tabs)
@@ -57,14 +60,14 @@ function useProtectedRoute(user: AppUser | null, isLoading: boolean) {
 
     // If logged out, redirect to login
     if (!user && inAuthGroup) {
-      router.replace('/login');
+      router.replace('/signup');
     } 
     // If logged in, redirect away from login
     else if (user && !inAuthGroup) {
       // Use replace to prevent the user from hitting the back button to the login screen
       router.replace('/(tabs)'); 
     }
-  }, [user, isLoading, inAuthGroup, router]);
+  }, [user, isLoading, inAuthGroup, isAuthRoute, router]);
 }
 
 
@@ -88,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     // Explicit sign out
-    await signOut(auth);
+    //await signOut(auth);
     // The useEffect hook above will handle the navigation to '/login' when the user state turns null.
   };
 

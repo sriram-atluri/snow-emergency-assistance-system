@@ -15,7 +15,7 @@ import { useFall } from "@/hooks/fallDetection"
 import { Alert, Vibration } from "react-native"; // use Vibration for haptic feedback
 import { sensorsAvailable } from "@/helpers/sensors-guard";
 
-export default function HomeScreen() {
+export default function TestScreen() {
  //const g = useGyro(60);
  const DEG = '\u00B0';
  const ang = useAngleFromGyro({

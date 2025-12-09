@@ -34,27 +34,27 @@ export default function SideMenu({ onClose }: Props) {
       {/* Menu Items */}
       <View style={styles.menuContainer}>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/home")}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/")}>
           <Ionicons name="home-outline" size={24} color="#000" />
           <Text style={styles.menuText}>Home</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/(tabs)/profilescreen")}>
           <Feather name="user" size={24} color="#000" />
           <Text style={styles.menuText}>Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+       {/* <TouchableOpacity style={styles.menuItem}>
           <Feather name="phone-call" size={24} color="#000" />
           <Text style={styles.menuText}>Call Records</Text>
-        </TouchableOpacity>
+  </TouchableOpacity>*/}
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/nearbyIncident")}>
           <Ionicons name="location-outline" size={24} color="#000" />
           <Text style={styles.menuText}>Nearby Incident</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/report")}>
           <MaterialIcons name="history" size={24} color="#000" />
           <Text style={styles.menuText}>Report History</Text>
         </TouchableOpacity>
@@ -63,7 +63,7 @@ export default function SideMenu({ onClose }: Props) {
 
       {/* Settings - Bottom aligned */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push("/settings")}>
           <Feather name="settings" size={24} color="#000" />
           <Text style={styles.menuText}>Settings</Text>
         </TouchableOpacity>

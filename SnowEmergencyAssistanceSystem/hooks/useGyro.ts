@@ -1,23 +1,4 @@
-/*import { useEffect, useRef, useState } from "react";
-import { Gyroscope } from "expo-sensors";
 
-export interface GyroSample { x:number; y:number; z:number; t:number; }
-
-export function useGyro(hz = 60) {
-    const [s, setS] = useState<GyroSample|null>(null);
-    const sub = useRef<ReturnType<typeof Gyroscope.addListener>|null>(null);
-  
-    useEffect(() => {
-      Gyroscope.setUpdateInterval(Math.max(1, Math.round(1000 / hz)));
-      sub.current = Gyroscope.addListener(({ x, y, z }) =>
-        setS({ x, y, z, t: Date.now() })
-      );
-      return () => sub.current?.remove();
-    }, [hz]);
-  
-    return s; // radians/sec
-  }*/
-// src/hooks/sensors/useGyro.ts
 import { Gyroscope } from "expo-sensors";
 import { useEffect, useRef, useState } from "react";
 
@@ -45,6 +26,7 @@ export function useAngleFromGyro(opts: Opts = {}) {
   } = opts;
 
   const [angle, setAngle] = useState<AngleDeg | null>(null);
+  // const [angle, setAngle] = useState<AngleDeg | null>(null);
   const [frozenState, setFrozenState] = useState<boolean>(false);
 
   const ema = useRef<{ x: number; y: number; z: number } | null>(null); // rad/s

@@ -1,5 +1,3 @@
-// ReportDetailsScreen.tsx
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -14,7 +12,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router"; 
 import * as FileSystem from 'expo-file-system/legacy'; 
 
-import { useReport } from '@/context/firebaseService'; 
+import { useReport } from '@/helpers/reportFallData'; 
 
 interface LogMeasurements {
     count: number;
@@ -31,6 +29,7 @@ const extractMeasurementsFromFile = (content: string): LogMeasurements => {
     }
     
     const count = dataLines.length;
+    // AccelMag is at index 2 in the CSV data lines
     const firstData = dataLines[0].split(',')[2]; 
     const lastData = dataLines[dataLines.length - 1].split(',')[2];
     
@@ -42,13 +41,19 @@ const extractMeasurementsFromFile = (content: string): LogMeasurements => {
 
 
 export default function ReportDetailsScreen() {
+    // 1. Get the parameters passed from YourReportsScreen
     const { reportId, reportName } = useLocalSearchParams<{ reportId?: string, reportName?: string }>();
+    
+    // 2. Get the array of all reports
     const { allReports } = useReport(); 
 
     const [logMeasurements, setLogMeasurements] = useState<LogMeasurements | null>(null);
     const [loadingFile, setLoadingFile] = useState(true);
 
+    // 🛑 LOOKUP: Find the specific structured report data using the ID
     const structuredReport = allReports.find(r => r.id === reportId);
+    
+    // Use the fileUri from the structured report (this should NOT be null if it was added to history)
     const activeFileUri = structuredReport?.fileUri;
 
     // --- EFFECT TO READ THE FILE ---
@@ -58,10 +63,12 @@ export default function ReportDetailsScreen() {
             return;
         }
 
-        // Handle mock data logic
-        if (activeFileUri === 'MOCK-FILE-URI' && structuredReport?.mockContent) {
-             const measurements = extractMeasurementsFromFile(structuredReport.mockContent);
-             setLogMeasurements(measurements);
+        // 🛑 FIX: Bypass file read for mock/debug reports
+        if (activeFileUri === 'MOCK-FILE-URI') {
+             setLogMeasurements({
+                 count: 1,
+                 summary: 'No raw log: This is static or test debug data.',
+             });
              setLoadingFile(false);
              return;
         }
@@ -69,7 +76,6 @@ export default function ReportDetailsScreen() {
 
         const readFileData = async () => {
             try {
-                // Read the raw CSV content using the local file URI
                 const rawContent = await FileSystem.readAsStringAsync(activeFileUri as string, {
                     encoding: 'utf8',
                 });
@@ -80,6 +86,7 @@ export default function ReportDetailsScreen() {
             } catch (error) {
                 console.error("Failed to read sensor log file:", error);
                 Alert.alert("File Read Error", `Could not load raw sensor data at ${activeFileUri}.`);
+                // Set an error state for the log data if the file read fails
                 setLogMeasurements({ count: 0, summary: 'Error: File not found or corrupted.' }); 
             } finally {
                 setLoadingFile(false);
@@ -87,22 +94,19 @@ export default function ReportDetailsScreen() {
         };
 
         readFileData();
-    }, [activeFileUri, structuredReport]);
+    }, [activeFileUri]);
 
     
     const defaultText = "N/A";
     const displayData = structuredReport || {}; 
-    
-    const simplifiedMeasurementsText = 
-        `Angle: ${displayData.angle || defaultText}
-Acceleration: ${displayData.velocity || defaultText}
-Pressure: ${displayData.pressure || defaultText}`;
+    const contextualMeasurements = `${displayData.angle || defaultText}, ${displayData.velocity || defaultText}, ${displayData.pressure || defaultText}`;
 
-    
     if (!structuredReport) {
+         // Display an error state if the structured data object could not be found
          return (
             <View style={[styles.container, styles.center]}>
                 <Text style={styles.loadingText}>Error: Structured data not found for ID: {reportId}.</Text>
+                <Text style={styles.loadingText}>Check if report was saved before app reload.</Text>
             </View>
         );
     }
@@ -131,23 +135,51 @@ Pressure: ${displayData.pressure || defaultText}`;
                 <Text style={styles.recordHeaderText}>{reportName || "Report Details"}</Text>
             </View>
 
-            {/* DETAILS SECTION (Snippet) */}
+            {/* DETAILS SECTION */}
             <View style={styles.detailBlock}>
                 
-                {/* Date, Location, Time, Type/Severity rows... */}
-                <View style={styles.row}><Text style={styles.label}>Date</Text><Text style={styles.value}>{displayData.date || defaultText}</Text></View>
-                <View style={styles.divider} />
-                <View style={styles.row}><Text style={styles.label}>Location</Text><Text style={styles.value}>{displayData.location || defaultText}</Text></View>
-                <View style={styles.divider} />
-                <View style={styles.row}><Text style={styles.label}>Time</Text><Text style={styles.value}>{displayData.time || defaultText}</Text></View>
-                <View style={styles.divider} />
-                <View style={styles.row}><Text style={styles.label}>Incident Type/Severity</Text><Text style={styles.value}>{displayData.type || defaultText} / {displayData.severity || defaultText}</Text></View>
+                {/* Date (From structuredReport) */}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Date</Text>
+                    <Text style={styles.value}>{displayData.date || defaultText}</Text>
+                </View>
                 <View style={styles.divider} />
 
-                {/* SNAPSHOT MEASUREMENTS SECTION */}
+                {/* Location (From structuredReport) */}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Location</Text>
+                    <Text style={styles.value}>{displayData.location || defaultText}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                {/* Time (From structuredReport) */}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Time</Text>
+                    <Text style={styles.value}>{displayData.time || defaultText}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                {/* Incident Type (From structuredReport) */}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Incident Type/Severity</Text>
+                    <Text style={styles.value}>{displayData.type || defaultText} / {displayData.severity || defaultText}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                {/* Contextual Sensor Snap (From structuredReport) */}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Measurements</Text>
+                    <Text style={styles.value}>{contextualMeasurements}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                {/* Raw Log File Summary (From FileSystem read) */}
                 <View style={{ ...styles.row, flexDirection: 'column', paddingVertical: 15 }}>
-                    <Text style={styles.label}>Sensor Readings (Snapshot)</Text>
-                    <Text style={styles.value}>{simplifiedMeasurementsText}</Text> 
+                    <Text style={{...styles.label, marginBottom: 5}}>Raw Data Log ({logMeasurements?.count} points)</Text>
+                    <Text style={styles.value}>
+                        {logMeasurements ? logMeasurements.summary : 'Error loading raw data log.'}
+                    </Text>
+                    <Text style={{ fontSize: 12, marginTop: 5, color: '#999' }}>File: {activeFileUri?.substring(activeFileUri.lastIndexOf('/') + 1)}</Text>
                 </View>
                 <View style={styles.divider} />
 
@@ -156,7 +188,7 @@ Pressure: ${displayData.pressure || defaultText}`;
             {/* HOME BUTTON */}
             <TouchableOpacity
                 style={styles.homeButton}
-                onPress={() => router.push("/")}
+                onPress={() => router.push("/home")}
             >
                 <Text style={styles.homeText}>Home</Text>
             </TouchableOpacity>
@@ -167,6 +199,7 @@ Pressure: ${displayData.pressure || defaultText}`;
 
 /* -------------------------------- STYLES -------------------------------- */
 const styles = StyleSheet.create({
+  // ... (Styles) ...
   container: { flex: 1, paddingTop: 60, paddingHorizontal: 25, backgroundColor: "#fff", },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', },
   loadingText: { marginTop: 20, fontSize: 18, color: '#666', },

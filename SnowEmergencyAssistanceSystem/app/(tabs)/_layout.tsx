@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { signOut } = useAuth(); // <-- Get the signOut function
+ // const { signOut } = useAuth(); // <-- Get the signOut function
 
   return (
     <Tabs
@@ -18,18 +18,15 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-<<<<<<< HEAD
         // You can use the headerRight option to place the Sign Out button
         headerRight: () => (
             <Button
-              onPress={signOut} // Call signOut to trigger the navigation back to 'signin'
+              //onPress={signOut} // Call signOut to trigger the navigation back to 'signin'
               title="Sign Out"
               color={Colors[colorScheme ?? 'light'].tint}
             />
         ),
-=======
         tabBarStyle: { display: "none" },
->>>>>>> naushad_branch
       }}>
 
         <Tabs.Screen
@@ -58,7 +55,7 @@ export default function TabLayout() {
         name="signIn"
         options={{
 
-          title: 'Help',
+          //title: 'Help',
 
           title: 'SignIn',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
