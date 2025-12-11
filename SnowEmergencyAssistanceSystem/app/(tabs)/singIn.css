@@ -1,0 +1,120 @@
+.signin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    height: 100vh;
+    padding: 20px;
+    font-family: "Inter", sans-serif;
+  }
+  
+  .signin-box {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  
+  .logo {
+    width: 25px;
+    height: 25px;
+    margin-bottom: 0px;
+  }
+  
+  .app-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 20px;
+  }
+  
+  .signin-title {
+    text-align: left;
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 10px;
+  }
+  
+  .subtitle {
+    text-align: left;
+    color: #7e7e7e;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .label {
+    display: block;
+    text-align: left;
+    color: #e63946;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    outline: none;
+    color: #333;
+  }
+  
+  .input-field:focus {
+    border-bottom: 1px solid #e63946;
+  }
+  
+  .password-container {
+    position: relative;
+  }
+  
+  .password-input {
+    padding-right: 40px;
+  }
+  
+  .password-icon {
+    position: absolute;
+    right: 10px;
+    top: 12px;
+    font-size: 18px;
+    color: #777;
+    cursor: pointer;
+  }
+  
+  .signin-btn {
+    margin-top: 25px;
+    width: 100%;
+    padding: 14px;
+    background: #ff6b6b;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .signin-btn:hover {
+    background: #e85a5a;
+  }
+  
+  .footer-row {
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .forgot {
+    color: #7e7e7e;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  
+  .signup {
+    color: #ff6b6b;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
