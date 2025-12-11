@@ -21,7 +21,7 @@ import {
 
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
-// 🚨 IMPORTANT: Replace with your actual Firebase configuration keys 🚨
+//  IMPORTANT: Replace with your actual Firebase configuration keys 
 const firebaseConfig = {
     apiKey: "AIzaSyDpZDt2T4VzMCGY-r4rURS48ib1s5pLZk4",
     authDomain: "snowguardapp.firebaseapp.com",
