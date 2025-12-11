@@ -73,15 +73,15 @@ const RootLayout: React.FC = () => {
     return (
       <Stack 
         key="auth"
-        initialRouteName="authentication/signup" 
+        initialRouteName="signup" 
         screenOptions={{ headerShown: false, }}
       >
-        <Stack.Screen name="authentication/signup" /> 
-        <Stack.Screen name="authentication/signin" /> 
-        <Stack.Screen name="authentication/forgetPassword" />
+        <Stack.Screen name="signup" /> 
+        <Stack.Screen name="signin" /> 
+        <Stack.Screen name="forgetPassword" />
         {/* Hide tabs from unauthorized users */}
         <Stack.Screen name="(tabs)" options={{ href: null }} />
-        <Redirect href="/authentication/signup" />
+        <Redirect href="signup" />
       </Stack>
     );
   }
