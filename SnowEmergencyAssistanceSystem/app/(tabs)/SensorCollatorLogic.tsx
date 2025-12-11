@@ -5,7 +5,7 @@ import { Alert, Vibration } from 'react-native';
 // Note: If you want live location, you must re-add the expo-location import
 // import * as Location from 'expo-location'; 
 
-// 🛑 ALL SENSOR AND FALL DETECTION HOOKS ARE HERE 🛑
+// ALL SENSOR AND FALL DETECTION HOOKS ARE HERE 🛑
 import { useAngleFromGyro } from "@/hooks/useGyro";
 import { useAccelerometerHold } from "@/hooks/useAccelerometerStable";
 import { useBarometerStable } from "@/hooks/useBarometer";

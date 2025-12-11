@@ -1,6 +1,7 @@
-// index.tsx (CLEANED UP - SensorCollatorLogic REMOVED)
+// index.tsx 
+// FINAL: Includes Fall Alert Modal AND Vibration Logic controlled by context
 
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,38 +9,74 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  Alert
+  Alert,
+  Vibration 
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-// 🛑 REMOVED: import SensorCollatorLogic from './SensorCollatorLogic'; 🛑
 
 import SideMenu from './sideMenu'; 
 import { useAuth } from '@/context/AuthContext';
 import { useReport } from '@/context/firebaseService'; // Adjust path if needed
 
 
+// --- Vibration Pattern Configuration ---
+// Pattern: Vibrate for 100ms, pause for 200ms, Vibrate for 100ms, pause for 500ms (Looping)
+const FALL_VIBRATION_PATTERN = [0, 100, 200, 100, 500];
+
+
 export default function HomeScreen() {
-  const { signOut: firebaseSignOut } = useAuth();
-  const { triggerManualSave } = useReport(); 
+  const { logout: firebaseSignOut } = useAuth();
+  
+  const { 
+    triggerManualSave, 
+    isMonitoringActive, 
+    toggleMonitoring,
+    lastFallDetectedTime 
+  } = useReport(); 
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   
-  // State to control sensor monitoring status
-  const [isSensorActive, setIsSensorActive] = useState(false); 
+  // State for the critical Fall Alert
+  const [isFallAlertVisible, setIsFallAlertVisible] = useState(false); 
+
+
+  // 1. EFFECT TO WATCH FOR FALLS AND SHOW MODAL/START VIBRATION 
+  useEffect(() => {
+      // Show alert only if a new fall time stamp is received
+      if (lastFallDetectedTime) {
+          setIsFallAlertVisible(true);
+      }
+  }, [lastFallDetectedTime]);
+  
+  // 2. EFFECT TO CONTROL VIBRATION LOOP 
+  useEffect(() => {
+      if (isFallAlertVisible) {
+          // Start looping vibration
+          Vibration.vibrate(FALL_VIBRATION_PATTERN, true);
+      } else {
+          // Stop vibration when the modal is dismissed/closed
+          Vibration.cancel();
+      }
+      
+      return () => {
+          Vibration.cancel();
+      };
+      
+  }, [isFallAlertVisible]);
+
 
   const handleOpenDialog = () => setIsDialogOpen(true);
   const openSidebar = () => setIsMenuVisible(true);
   const closeSidebar = () => setIsMenuVisible(false);
 
-  // UPDATED ASYNC POWER TOGGLE HANDLER (Logic remains the same)
+  // Power Toggle Handler 
   const handlePowerToggle = async () => {
     
-    if (isSensorActive) {
-        // Turning OFF: Trigger the cleanup save inside firebaseService.tsx
+    if (isMonitoringActive) {
+        // Turning OFF: Trigger the cleanup save (which passes 'false' to createAndSaveReport)
         try {
             await triggerManualSave(); 
             console.log("Cleanup report triggered and saved successfully.");
@@ -51,12 +88,10 @@ export default function HomeScreen() {
     } else {
         // Turning ON: Show the reminder modal
         setIsReminderOpen(true);
-        // NOTE: Monitoring is now implicitly handled by the firebaseService Context Provider
-        // which starts running sensor hooks as soon as the app loads.
     }
 
-    // Toggle the state
-    setIsSensorActive(prev => !prev);
+    // Toggle the state via the context provider
+    toggleMonitoring();
   }
 
   const navigateToReports = () => router.push('/report'); 
@@ -65,7 +100,7 @@ export default function HomeScreen() {
   // Function to handle sign out
   const handleSignOut = async () => {
     try {
-        if (isSensorActive) {
+        if (isMonitoringActive) {
             await triggerManualSave();
         }
         await firebaseSignOut(); 
@@ -79,9 +114,6 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
 
-      {/* 🛑 REMOVED: {isSensorActive && <SensorCollatorLogic />} 🛑 */}
-      {/* Sensor logic runs constantly in the background via the Provider */}
-
       {/* Top Bar */}
       <View style={styles.topRow}>
         <TouchableOpacity onPress={openSidebar}>
@@ -91,9 +123,9 @@ export default function HomeScreen() {
         {/* Sign Out Button */}
         <TouchableOpacity
             onPress={handleSignOut}
-            style={{ position: 'absolute', right: 0 }}
+            style={styles.signOutButtonContainer}
         >
-            <Ionicons name="log-out-outline" size={32} color="#888" />
+            <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
 
@@ -119,12 +151,16 @@ export default function HomeScreen() {
       {/* Button Grid */}
       <View style={styles.grid}>
         
-        {/* Power Button (Now just toggles the visual status) */}
+        {/* Power Button */}
         <TouchableOpacity 
         onPress={handlePowerToggle}
         style={styles.card}>
-          <Ionicons name={isSensorActive ? "power" : "power-outline"} size={48} color={isSensorActive ? "#2ECC71" : "#ff3b3b"} />
-          <Text style={styles.label}>{isSensorActive ? "Monitoring" : "Power"}</Text>
+          <Ionicons 
+            name={isMonitoringActive ? "power" : "power-outline"} 
+            size={48} 
+            color={isMonitoringActive ? "#2ECC71" : "#ff3b3b"} 
+          />
+          <Text style={styles.label}>{isMonitoringActive ? "Monitoring" : "Power"}</Text>
         </TouchableOpacity>
 
         {/* Call Button */}
@@ -177,7 +213,7 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-      {/* Snow Fall Detection Status Modal (Reminder) */}
+      {/* Snow Fall Detection Status Modal (Reminder for Power ON) */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -196,11 +232,46 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
+      {/* 🛑 FALL DETECTED ALERT MODAL 🛑 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isFallAlertVisible}
+        onRequestClose={() => setIsFallAlertVisible(false)}
+      >
+          <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                  <Ionicons name="warning" size={40} color="#FF3B30" style={{ marginBottom: 10 }} />
+                  <Text style={styles.modalTitle}>🚨 FALL DETECTED! 🚨</Text>
+                  <Text style={styles.modalText}>
+                      A fall event was detected and automatically reported to your logs.
+                      Do you need immediate assistance?
+                  </Text>
+                  <View style={styles.buttonRow}>
+                      <TouchableOpacity
+                          style={[styles.alertButton, { backgroundColor: '#34C759' }]}
+                          onPress={() => setIsFallAlertVisible(false)} // Stops modal & vibration
+                      >
+                          <Text style={styles.buttonText}>I'M OK (Dismiss)</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                          style={[styles.alertButton, { backgroundColor: '#FF3B30', marginLeft: 15 }]}
+                          onPress={() => {
+                              setIsFallAlertVisible(false); // Stops modal & vibration
+                              Alert.alert("Emergency Call", "Initiating call to emergency services...");
+                          }}
+                      >
+                          <Text style={styles.buttonText}>CALL 911</Text>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </View>
+      </Modal>
+
     </View>
   );
 };
 
-// ... (Styles remain the same) ...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -220,6 +291,17 @@ const styles = StyleSheet.create({
     height: 85,
     alignSelf: "center",
     marginBottom: 8,
+  },
+  signOutButtonContainer: {
+    position: 'absolute', 
+    right: 0, 
+    paddingHorizontal: 10, 
+    paddingVertical: 5,
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#888',
   },
   appTitle: {
     fontSize: 28,
@@ -246,6 +328,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
+  closeButton: {
+    backgroundColor: '#FF3B30',
+    padding: 10,
+    borderRadius: 6,
+    minWidth: 100,
+    alignItems: 'center',
+  },
   buttonText: {
     color: 'white',
     fontSize: 16,
@@ -255,7 +344,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
   },
   modalView: {
     margin: 20,
@@ -267,28 +356,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    width: '80%',
+    width: '85%',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#333',
   },
   modalText: {
     marginBottom: 20,
     textAlign: 'center',
-  },
-  closeButton: {
-    backgroundColor: '#FF3B30',
-    padding: 10,
-    borderRadius: 6,
-    minWidth: 100,
-    alignItems: 'center',
+    fontSize: 14,
   },
   label: {
     marginTop: 8,
     fontSize: 16,
     fontWeight: "500",
     color: "#444",
-  }
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 15,
+  },
+  alertButton: {
+    padding: 10,
+    borderRadius: 8,
+    minWidth: 110,
+    alignItems: 'center',
+    flex: 1,
+  },
 });

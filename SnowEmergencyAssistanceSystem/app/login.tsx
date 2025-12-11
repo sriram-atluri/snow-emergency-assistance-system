@@ -6,8 +6,8 @@ import React, { createContext,
   ReactNode } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; 
-import { useAuth } from '../context/AuthContext'; // Import useAuth to access logout (optional)
+import { auth } from '@/firebaseConfig'; 
+import { useAuth } from '@/context/AuthContext'; // Import useAuth to access logout (optional)
 
 
 const LoginScreen: React.FC = () => {

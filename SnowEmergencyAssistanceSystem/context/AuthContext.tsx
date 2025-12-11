@@ -9,7 +9,7 @@ import {
   initializeAuth, 
   createUserWithEmailAndPassword,
   onAuthStateChanged, 
-  //signOut, 
+  signOut, 
   User as FirebaseUser, 
   Auth 
 } from 'firebase/auth'; 
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     // Explicit sign out
-    //await signOut(auth);
+    await signOut(auth);
     // The useEffect hook above will handle the navigation to '/login' when the user state turns null.
   };
 

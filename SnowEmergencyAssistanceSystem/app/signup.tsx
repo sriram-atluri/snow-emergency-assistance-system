@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
-import { auth } from '../firebaseConfig';
+import { auth } from '@/firebaseConfig';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState(''); // State for email
@@ -66,7 +66,7 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       {/* ... Logo, Titles ... */}
       <Image
-        source={require("../assets/images/snow.png")}
+        source={require("@/assets/images/snow.png")}
         style={styles.logo}
       />
 

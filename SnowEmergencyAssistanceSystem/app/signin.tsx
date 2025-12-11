@@ -14,13 +14,13 @@ import { router } from "expo-router";
 // 🚨 Import Firebase Auth functions
 import { signInWithEmailAndPassword } from 'firebase/auth';
 // 🚨 Assume your Firebase auth instance is exported from a config file
-import { auth } from '../firebaseConfig'; // 👈 ADJUST PATH AS NEEDED
+import { auth } from '@/firebaseConfig';
 
 export default function SignInScreen() {
-  const [email, setEmail] = useState(''); // 👈 State for email
-  const [password, setPassword] = useState(''); // 👈 State for password
+  const [email, setEmail] = useState(''); // State for email
+  const [password, setPassword] = useState(''); // State for password
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // 👈 State for loading
+  const [loading, setLoading] = useState(false); // State for loading
 
   // --- 1. HANDLE SIGN IN FUNCTION ---
   const handleSignIn = async () => {
@@ -61,7 +61,7 @@ export default function SignInScreen() {
 
       {/* Logo */}
       <Image 
-        source={require("../assets/images/snow.png")}
+        source={require("@/assets/images/snow.png")}
         style={styles.logo}
       />
 

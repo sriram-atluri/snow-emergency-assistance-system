@@ -6,11 +6,11 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
+import { useAuth } from '@/context/AuthContext'; // Adjust path as needed
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
- // const { signOut } = useAuth(); // <-- Get the signOut function
+  const { logout } = useAuth(); // <-- Get the signOut function
 
   return (
     <Tabs
@@ -21,7 +21,7 @@ export default function TabLayout() {
         // You can use the headerRight option to place the Sign Out button
         headerRight: () => (
             <Button
-              //onPress={signOut} // Call signOut to trigger the navigation back to 'signin'
+              onPress={logout} // Call signOut to trigger the navigation back to 'signin'
               title="Sign Out"
               color={Colors[colorScheme ?? 'light'].tint}
             />

@@ -1,5 +1,3 @@
-// app/_layout.tsx
-
 import { Stack, Redirect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Text } from 'react-native';
@@ -7,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 // --- Core Imports ---
 import { AuthProvider, useAuth } from '../context/AuthContext'; 
-// Use the relative path to your ReportContext file
+// Import the ReportProvider from the correct file (firebaseService.tsx)
 import { ReportProvider } from '@/context/firebaseService'; 
 
 
@@ -16,30 +14,28 @@ SplashScreen.preventAutoHideAsync();
 
 // ------------------------------------------------------------------
 // 1. Authenticated Stack (The main navigation stack for logged-in users)
+//    NOTE: ReportProvider removed from here, moved to AuthRoot wrapper.
 // ------------------------------------------------------------------
 const AuthenticatedStack = () => (
-    // ReportProvider must wrap the Stack to ensure state persists across all nested screens (tabs, details, etc.)
-    <ReportProvider>
-        <Stack key="app" initialRouteName="(tabs)" screenOptions={{ headerShown: false }}>
-            
-            {/* The entry point for your tab navigation */}
-            <Stack.Screen name="(tabs)" /> 
-            
-            {/* 🛑 CRITICAL: This MUST match the file name 'reportDetailsScreen.tsx' exactly 🛑 */}
-            <Stack.Screen name="reportDetailsScreen" />
-            
-            {/* Auth screens are registered here but hidden from the logged-in stack */}
-            <Stack.Screen name="signup" options={{ href: null }} />
-            <Stack.Screen name="signin" options={{ href: null }} />
-            <Stack.Screen name="forgetPassword" options={{ href: null }} />
-        </Stack>
-    </ReportProvider>
+    <Stack key="app" initialRouteName="(tabs)" screenOptions={{ headerShown: false }}>
+        
+        {/* The entry point for your tab navigation */}
+        <Stack.Screen name="(tabs)" /> 
+        
+        <Stack.Screen name="reportDetailsScreen" />
+        
+        {/* Auth screens are registered here but hidden from the logged-in stack */}
+        <Stack.Screen name="signup" options={{ href: null }} />
+        <Stack.Screen name="signin" options={{ href: null }} />
+        <Stack.Screen name="forgetPassword" options={{ href: null }} />
+    </Stack>
 );
 
 // ------------------------------------------------------------------
 // 2. Root Layout Component (Handles Splash and Authentication Routing)
 // ------------------------------------------------------------------
 const RootLayout: React.FC = () => {
+  // useAuth() is available because AuthProvider wraps this component (see below)
   const { user, isLoading } = useAuth();
   const [splashTimeoutComplete, setSplashTimeoutComplete] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
@@ -77,15 +73,15 @@ const RootLayout: React.FC = () => {
     return (
       <Stack 
         key="auth"
-        initialRouteName="signup" 
+        initialRouteName="authentication/signup" 
         screenOptions={{ headerShown: false, }}
       >
-        <Stack.Screen name="signup" /> 
-        <Stack.Screen name="signin" /> 
-        <Stack.Screen name="forgetPassword" />
+        <Stack.Screen name="authentication/signup" /> 
+        <Stack.Screen name="authentication/signin" /> 
+        <Stack.Screen name="authentication/forgetPassword" />
         {/* Hide tabs from unauthorized users */}
         <Stack.Screen name="(tabs)" options={{ href: null }} />
-        <Redirect href="/signup" />
+        <Redirect href="/authentication/signup" />
       </Stack>
     );
   }
@@ -95,12 +91,16 @@ const RootLayout: React.FC = () => {
 };
 
 // ------------------------------------------------------------------
-// 3. AuthRoot wrapper (Wraps the whole app in the AuthContext)
+// 3. AuthRoot wrapper (Wraps the whole app in ALL Contexts)
 // ------------------------------------------------------------------
 export default function AuthRoot() {
   return (
+    // ✅ FIX: The AuthProvider MUST wrap the ReportProvider, 
+    // and both must wrap the RootLayout to make all contexts available immediately.
     <AuthProvider>
+      <ReportProvider>
         <RootLayout />
+      </ReportProvider>
     </AuthProvider>
   );
 }

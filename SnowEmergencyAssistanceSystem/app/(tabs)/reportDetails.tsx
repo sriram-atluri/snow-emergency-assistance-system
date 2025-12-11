@@ -1,4 +1,4 @@
-// ReportDetailsScreen.tsx
+// ReportDetailsScreen.tsx (FIXED: Using locationAddress)
 
 import React, { useEffect, useState } from "react";
 import {
@@ -31,6 +31,7 @@ const extractMeasurementsFromFile = (content: string): LogMeasurements => {
     }
     
     const count = dataLines.length;
+    // Assuming CSV structure: Timestamp, sensorType, dataValue, ...
     const firstData = dataLines[0].split(',')[2]; 
     const lastData = dataLines[dataLines.length - 1].split(',')[2];
     
@@ -48,6 +49,7 @@ export default function ReportDetailsScreen() {
     const [logMeasurements, setLogMeasurements] = useState<LogMeasurements | null>(null);
     const [loadingFile, setLoadingFile] = useState(true);
 
+    // Ensure the structuredReport data is cast correctly, assuming 'allReports' uses the new interface
     const structuredReport = allReports.find(r => r.id === reportId);
     const activeFileUri = structuredReport?.fileUri;
 
@@ -137,7 +139,10 @@ Pressure: ${displayData.pressure || defaultText}`;
                 {/* Date, Location, Time, Type/Severity rows... */}
                 <View style={styles.row}><Text style={styles.label}>Date</Text><Text style={styles.value}>{displayData.date || defaultText}</Text></View>
                 <View style={styles.divider} />
-                <View style={styles.row}><Text style={styles.label}>Location</Text><Text style={styles.value}>{displayData.location || defaultText}</Text></View>
+                {/* ---------------------------------------------------- */}
+                {/* FIX APPLIED HERE: Use displayData.locationAddress */}
+                <View style={styles.row}><Text style={styles.label}>Location</Text><Text style={styles.value}>{displayData.locationAddress || defaultText}</Text></View>
+                {/* ---------------------------------------------------- */}
                 <View style={styles.divider} />
                 <View style={styles.row}><Text style={styles.label}>Time</Text><Text style={styles.value}>{displayData.time || defaultText}</Text></View>
                 <View style={styles.divider} />
@@ -146,7 +151,7 @@ Pressure: ${displayData.pressure || defaultText}`;
 
                 {/* SNAPSHOT MEASUREMENTS SECTION */}
                 <View style={{ ...styles.row, flexDirection: 'column', paddingVertical: 15 }}>
-                    <Text style={styles.label}>Sensor Readings (Snapshot)</Text>
+                    <Text style={styles.label}>Sensor Readings</Text>
                     <Text style={styles.value}>{simplifiedMeasurementsText}</Text> 
                 </View>
                 <View style={styles.divider} />

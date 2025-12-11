@@ -12,7 +12,7 @@ import { router } from "expo-router";
 // 🚨 Import necessary Firebase function
 import { sendPasswordResetEmail } from 'firebase/auth'; 
 // 🚨 Import your auth instance (ADJUST PATH AS NEEDED)
-import { auth } from '../firebaseConfig'; 
+import { auth } from '@/firebaseConfig'; 
 
 
 export default function ForgetPasswordScreen() {
