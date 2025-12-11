@@ -1,5 +1,5 @@
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { auth } from '../firebaseConfig'; 
+import { auth } from '../../firebaseConfig'; 
 
 
 /*const resetScreen => {
